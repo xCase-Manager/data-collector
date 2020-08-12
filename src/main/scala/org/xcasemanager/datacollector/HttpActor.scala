@@ -1,7 +1,6 @@
 package org.xcasemanager.datacollector
 
 import java.util.concurrent.TimeUnit
-
 import akka.actor.Actor
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.{Http, HttpExt}
@@ -29,15 +28,8 @@ class HttpActor extends Actor {
   var http : HttpExt = null
   var binding : Future[ServerBinding] = null
 
-  // The path to the actor that takes care of authenticating inbound messages
-  val authenticateActor = context.actorSelection("/user/authenticateActor")
-
-  // The path to the actor that takes care of registering a user
-  val registerActor = context.actorSelection("/user/registerActor")
-
   // The path to the actor that takes care of registering an execution
   val caseExecutionRegisterActor = context.actorSelection("/user/caseExecutionRegisterActor")
-
   // The path to the actor that takes care of mapping inbound report result messages
   val executionReportMappingActor = context.actorSelection("/user/executionReportMappingActor")
 
