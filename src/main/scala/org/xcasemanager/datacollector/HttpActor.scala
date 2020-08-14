@@ -25,35 +25,6 @@ import org.mongodb.scala.result.DeleteResult
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Projections._
-
-//import org.db.data.Employee
-//import org.domain.EmployeeRequest
-//import org.user.repositories.EmployeeRepo
-
-
-
-// Akka
-/*
-import akka.stream.alpakka.mongodb.scaladsl.MongoSource
-import akka.NotUsed
-import akka.stream.alpakka.mongodb.ObservableToPublisher
-
-import com.mongodb.reactivestreams.client.MongoClients
-// import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.{Sink, Source}
-
-import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
-import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
-import org.mongodb.scala.bson.codecs.Macros._
-// mongo find equal
-import org.mongodb.scala.model.Filters._
-import com.mongodb.client.model.Projections
-
-import org.mongodb.scala.Observable
-import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.Subscription
-import org.mongodb.scala.Observer
-*/
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 
