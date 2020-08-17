@@ -17,7 +17,7 @@ import scala.concurrent.{Await, Future}
 import scala.Option
 
 import akka.NotUsed
-import akka.actor.ActorSystem
+import akka.actor._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.mongodb.scala.result.DeleteResult
