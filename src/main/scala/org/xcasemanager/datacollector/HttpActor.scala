@@ -23,9 +23,9 @@ import akka.stream.scaladsl.Source
 import org.mongodb.scala.result.DeleteResult
 
 import org.mongodb.scala._
+import org.mongodb.scala.Observer
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Projections._
-import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
 
 /**
@@ -93,40 +93,21 @@ class HttpActor extends Actor {
       val database: MongoDatabase = mongoClient.getDatabase("TCM")
       var collection: MongoCollection[Document] = database.getCollection("Projects")
 
-      val collScores = collection.find().limit(5).projection(fields(include("id", "name", "description"), excludeId()))
-      
-      context.actorSelection("/user/logActor") ! " -- -------- ------- ----------- "
+      // Send an asynchronous message to the logActor to say the web server is about to start
+      context.actorSelection("/user/logActor") ! "Starting HTTP Server"
+      // Start and bind the web server
+      http = Http()
+      binding = http.bindAndHandle(routes, "localhost", 8000)
+  }
 
-      val response = Await.result(collScores.toFuture, Duration(10, TimeUnit.SECONDS))
-
-      val listMapScores = response.map(doc=> 
-                                                Map("id" -> doc("id").asString.getValue, 
-                                                    "name" -> doc("name").asString.getValue,
-                                                    "description" -> doc("description").asString.getValue
-                                                )
-                                      )
-
-      var jsonString = ""
-      if(listMapScores.length == 1)
-        jsonString = scala.util.parsing.json.JSONObject(listMapScores.head).toString()
-      else if(listMapScores.length > 1){
-        jsonString += "["
-        for (map <- listMapScores) jsonString += ( scala.util.parsing.json.JSONObject(map).toString() + ",")
-        jsonString += "]"
+  def jsonizeDocs(cDocument: Seq[Document]): String = {
+    val sb=new StringBuilder
+    for (doc <- cDocument) {
+      if (sb.nonEmpty) {
+        sb.append(",")
       }
-        
-      if (response != null && response.nonEmpty && response.head.nonEmpty) {
-          context.actorSelection("/user/logActor") ! " -- -- -- >> " + response
-          context.actorSelection("/user/logActor") ! " -- -- -- >> " + listMapScores
-          context.actorSelection("/user/logActor") ! " -- -- -- >> " + jsonString
-      }
-    
-      context.actorSelection("/user/logActor") ! " -- -------- ------- ----------- "
-
-    // Send an asynchronous message to the logActor to say the web server is about to start
-    context.actorSelection("/user/logActor") ! "Starting HTTP Server 2"
-    // Start and bind the web server
-    http = Http()
-    binding = http.bindAndHandle(routes, "localhost", 8000)
+      sb.append(doc.toJson)
+    }
+    sb.toString
   }
 }
