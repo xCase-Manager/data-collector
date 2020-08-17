@@ -16,7 +16,7 @@ object DbConfig {
   import org.mongodb.scala.bson.codecs.DEFAULT_CODEC_REGISTRY
   import org.mongodb.scala.bson.codecs.Macros._
   import org.mongodb.scala.{MongoClient, MongoCollection, MongoDatabase}
-  import org.xcasemanager.datacollector.data.Project
+  import org.xcasemanager.datacollector.db.data.Project
 
   private val javaCodecs = CodecRegistries.fromCodecs(
     new LocalDateTimeDateCodec(),
@@ -31,5 +31,5 @@ object DbConfig {
 
   val client: MongoClient = MongoClient(settings)
   val database: MongoDatabase = client.getDatabase("TCM")
-  val projects: MongoCollection[Employee] = database.getCollection("Projects")
+  val projects: MongoCollection[Project] = database.getCollection("Projects")
 }

@@ -6,7 +6,7 @@ import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
 import org.domain.ProjectRequest
 import org.mongodb.scala.Completed
-import org.user.repositories.EmployeeRepo
+import org.xcasemanager.datacollector.repositories.ProjectRepo
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 

@@ -1,7 +1,7 @@
 package org.xcasemanager.datacollector.repositories
 
-import org.db.config.DbConfig
-import org.db.data.Employee
+import org.xcasemanager.datacollector.db.config.DbConfig
+import org.xcasemanager.datacollector.db.data.Project
 import org.mongodb.scala.{Completed, MongoCollection}
 import org.utils.JsonUtils
 
