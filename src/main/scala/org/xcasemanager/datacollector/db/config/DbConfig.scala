@@ -1,4 +1,4 @@
-package org.xcasemanager.db.config
+package org.xcasemanager.datacollector.db.config
 
 import ch.rasc.bsoncodec.math.BigDecimalStringCodec
 import ch.rasc.bsoncodec.time.LocalDateTimeDateCodec

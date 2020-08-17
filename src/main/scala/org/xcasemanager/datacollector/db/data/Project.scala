@@ -1,4 +1,4 @@
-package org.xcasemanager.datacollector.data
+package org.xcasemanager.datacollector.db.data
 
 import java.lang.annotation.Documented
 

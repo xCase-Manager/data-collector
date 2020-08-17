@@ -7,7 +7,7 @@ import org.utils.JsonUtils
 
 import scala.concurrent.Future
 
-object EmployeeRepo extends JsonUtils {
+object ProjectRepo extends JsonUtils {
   private val projectDoc: MongoCollection[Project] = DbConfig.projects
 
   def createCollection(): Unit = {
