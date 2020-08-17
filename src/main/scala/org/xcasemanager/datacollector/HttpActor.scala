@@ -87,11 +87,16 @@ class HttpActor extends Actor {
             }
           }
         }
-      } 
-
-      val mongoClient: MongoClient = MongoClient("mongodb://mongodb:27017/")
-      val database: MongoDatabase = mongoClient.getDatabase("TCM")
-      var collection: MongoCollection[Document] = database.getCollection("Projects")
+      } ~
+      // endpoint to get projects data
+      path("projects") {
+        get {
+          val resultFuture = Patterns.ask(projectActor, SEARCH_ALL, TimeUtils.timeoutMills)
+          val resultSource = Await.result(resultFuture, TimeUtils.atMostDuration).asInstanceOf[Source[Project, NotUsed]]
+          val resultByteString = resultSource.map { it => ByteString.apply(it.toJson.toString.getBytes()) }
+          RouteDirectives.complete(HttpEntity(ContentTypes.`text/plain(UTF-8)`, resultByteString))
+        }
+      }
 
       // Send an asynchronous message to the logActor to say the web server is about to start
       context.actorSelection("/user/logActor") ! "Starting HTTP Server"
