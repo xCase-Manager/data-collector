@@ -28,6 +28,8 @@ import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model.Filters._
 
+import org.xcasemanager.datacollector.project.actor.ProjectActor
+
 /**
   * Actor taking care of configuring and starting the web server
   */
@@ -45,6 +47,8 @@ class HttpActor extends Actor {
   val caseExecutionRegisterActor = context.actorSelection("/user/caseExecutionRegisterActor")
   // The path to the actor that takes care of mapping inbound report result messages
   val executionReportMappingActor = context.actorSelection("/user/executionReportMappingActor")
+
+   val projectActor: ActorRef = system.actorOf(Props(new ProjectActor()))
 
   override def receive: Receive = {
     // If a StartWebServerCommand is received, then start the web server
