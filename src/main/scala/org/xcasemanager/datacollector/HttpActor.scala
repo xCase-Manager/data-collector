@@ -99,15 +99,4 @@ class HttpActor extends Actor {
       http = Http()
       binding = http.bindAndHandle(routes, "localhost", 8000)
   }
-
-  def jsonizeDocs(cDocument: Seq[Document]): String = {
-    val sb=new StringBuilder
-    for (doc <- cDocument) {
-      if (sb.nonEmpty) {
-        sb.append(",")
-      }
-      sb.append(doc.toJson)
-    }
-    sb.toString
-  }
 }
