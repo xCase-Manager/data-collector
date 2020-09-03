@@ -1,40 +1,53 @@
 package org.xcasemanager.datacollector
 
-import java.util.concurrent.TimeUnit
 import akka.actor.Actor
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.model.HttpResponse
+import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server._
+import Directives._
+import StatusCodes._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import org.xcasemanager.datacollector.JsonSupport._
 import spray.json._
 import akka.pattern.ask
-import akka.util.Timeout
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.Option
-
-import akka.NotUsed
-import akka.actor._
+import scala.util.{Failure, Success}
+import scala.concurrent.duration.Duration
+import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import org.mongodb.scala.result.DeleteResult
-
-import org.mongodb.scala._
-import org.mongodb.scala.Observer
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Projections._
-import org.mongodb.scala.model.Filters._
-
-import org.xcasemanager.datacollector.project.actor.ProjectActor
+import akka.pattern.Patterns
+import akka.util.Timeout
+import java.util.concurrent.TimeUnit
+import akka.http.scaladsl.Http.ServerBinding
 
 /**
-  * Actor taking care of configuring and starting the web server
-  */
+* data collector API server
+*/
 class HttpActor extends Actor {
 
+  val logActor = context.actorSelection("/user/logActor")
+  val executionDataProcessActor = context.actorSelection("/user/executionDataProcessActor")
+  val executionRepoActor = context.actorSelection("/user/executionRepoActor")
+
+  /*
+    Exception Handler
+  */
+  implicit def serverExceptionHandler: ExceptionHandler =
+    ExceptionHandler {
+      case error: Exception =>
+        extractUri { uri =>
+          logActor ! s"Request to $uri could not be handled normally"
+          logActor ! " -----> Reason: " + error.getMessage
+          complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not process request\"}"))
+        }
+    }
   implicit val executionContext = context.dispatcher
   implicit val system = context.system
   implicit val timeout = Timeout(10,TimeUnit.SECONDS)
@@ -43,19 +56,13 @@ class HttpActor extends Actor {
   var http : HttpExt = null
   var binding : Future[ServerBinding] = null
 
-  // The path to the actor that takes care of registering an execution
-  val caseExecutionRegisterActor = context.actorSelection("/user/caseExecutionRegisterActor")
-  // The path to the actor that takes care of mapping inbound report result messages
-  val executionReportMappingActor = context.actorSelection("/user/executionReportMappingActor")
-
-   val projectActor: ActorRef = system.actorOf(Props(new ProjectActor()))
-
+  /*
+    server command messages handler
+  */
   override def receive: Receive = {
-    // If a StartWebServerCommand is received, then start the web server
     case StartWebServerCommand =>
       if(http == null)
         startWebServer
-    // If a StopWebServerCommand is received, then stop the web server
     case StopWebServerCommand =>
       if(binding != null)
         Await.result(binding, 10.seconds)
@@ -63,49 +70,49 @@ class HttpActor extends Actor {
   }
 
   /**
-    * Configures and starts a web server
-    */
+    * Server resources definition
+  */
   def startWebServer = {
-    val routes : Route =
-      // endpoint to register a new execution
-      path("execution") {
-        post {
-          entity(as[Registration]) { registration =>
-                // Send the message to the registerActor and proceed further without waiting for the response
-                caseExecutionRegisterActor ! registration
-                // Return a confirmation message
-                complete(HttpEntity(ContentTypes.`application/json`, "{\"done\":true}"))
-          }
-        }
-      } ~
-      // endpoint to report an execution result
-      path("report") {
-        post {
-          entity(as[Envelope]) { envelope =>
-            // On success, forward envelope to the executionReportMappingActor and await its verdict
-            onSuccess(executionReportMappingActor ? envelope){
-              // If the executionReportMappingActor returns an OpSuccess, then we're good and we print the message
-              case res : OpSuccess => complete(StatusCodes.OK, HttpEntity(ContentTypes.`application/json`,res.toJson.prettyPrint))
-              // If the executionReportMappingActor returns an OpFailure, then we're not good and we print the message
-              case res : OpFailure => complete(StatusCodes.BadRequest,HttpEntity(ContentTypes.`application/json`, res.toJson.prettyPrint))
-            }
-          }
-        }
-      } ~
-      // endpoint to get projects data
-      path("projects") {
+    val routes : Route = Route.seal(
+      concat(
         get {
-          val resultFuture = Patterns.ask(projectActor, SEARCH_ALL, TimeUtils.timeoutMills)
-          val resultSource = Await.result(resultFuture, TimeUtils.atMostDuration).asInstanceOf[Source[Project, NotUsed]]
-          val resultByteString = resultSource.map { it => ByteString.apply(it.toJson.toString.getBytes()) }
-          RouteDirectives.complete(HttpEntity(ContentTypes.`text/plain(UTF-8)`, resultByteString))
-        }
-      }
+          pathPrefix("project" / LongNumber) { id =>
+            val proj: Future[Any] = executionRepoActor ? id
+            onComplete(proj) {
 
-      // Send an asynchronous message to the logActor to say the web server is about to start
-      context.actorSelection("/user/logActor") ! "Starting HTTP Server"
-      // Start and bind the web server
-      http = Http()
-      binding = http.bindAndHandle(routes, "localhost", 8000)
+              case Success(seqFuture: Future[Any]) => {
+                onComplete(seqFuture) {
+
+                    case Success(seq) => {
+                      val projStr: Future[Any] = executionDataProcessActor ? seq
+
+                      onComplete(projStr) {
+                        case Success(seqStr: String) => {
+                          complete(HttpEntity(ContentTypes.`application/json`, seqStr))
+                        }
+
+                        case Failure(failure) => 
+                          complete(HttpEntity(ContentTypes.`application/json`, "failure!")) 
+                      }
+                    } 
+                              
+                    case Failure(failure) => 
+                      complete(HttpEntity(ContentTypes.`application/json`, "failure!"))  
+                }        
+              }            
+                  
+              case Failure(failure) => {
+                complete(HttpEntity(ContentTypes.`application/json`, "failure"))    
+              }              
+            }       
+          }
+        }
+      )
+    )
+
+    // Start server
+    logActor ! "Starting Data Collector API Server ..."
+    http = Http()
+    binding = http.bindAndHandle(routes, "localhost", 8000)
   }
 }
