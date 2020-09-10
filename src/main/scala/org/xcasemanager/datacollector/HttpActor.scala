@@ -70,7 +70,7 @@ class HttpActor extends Actor {
   }
 
   /**
-    * Server resources definition
+  * Server resources definition
   */
   def startWebServer = {
     val routes : Route = Route.seal(
@@ -106,6 +106,31 @@ class HttpActor extends Actor {
               }              
             }       
           }
+        } ~
+        post {
+          pathPrefix("project") {
+            entity(as[String]) { projectStr =>
+              val projFut: Future[Any] = executionDataProcessActor ? projectStr
+              println("projFut: " + projFut)
+              onComplete(projFut) {
+                case Success(project: org.xcasemanager.datacollector.db.data.Project) => {
+                      val proj: Future[Any] = executionRepoActor ? project
+                      onComplete(proj) {
+                        case Success(()) => {        
+                                complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
+                        }
+                          
+                        case Failure(failure) => {
+                          complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))    
+                        }              
+                      }
+                }
+
+                case Failure(failure) => 
+                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))        
+              }
+            }
+          }      
         }
       )
     )
