@@ -1,6 +1,7 @@
 package org.xcasemanager.datacollector.actors.project
 
 import akka.actor.Actor
+import scala.util.parsing.json._
 import org.xcasemanager.datacollector.db.data.Project
 
 class ExecutionDataProcessActor extends Actor {
@@ -13,6 +14,10 @@ class ExecutionDataProcessActor extends Actor {
     case seq: Seq[Project] =>
       println(s"increment $seq")
       sender ! jsonizeDocs(seq)
+    
+    case project: String =>
+      println(s"project: $project")
+      sender ! toProject(project)
   }
 
   /*
@@ -42,5 +47,16 @@ class ExecutionDataProcessActor extends Actor {
       sb.append("'" + f.getName + "': '" + f.get(proj) + "'")   
     }
     sb.toString
+  }
+
+  /*
+    convert to Project
+  */
+  def toProject(proj: String): Project= {
+    val project = JSON.parseFull(proj)
+    val map = project.get.asInstanceOf[Map[String, String]]
+    return new Project(map.get("id").get.asInstanceOf[String], 
+      map.get("name").get.asInstanceOf[String], 
+      map.get("description").get.asInstanceOf[String])
   }
 }
