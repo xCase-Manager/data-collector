@@ -21,27 +21,24 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
 import org.mongodb.scala.bson.codecs.Macros.createCodecProvider 
 import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
-
-//xcasemanager
 import org.xcasemanager.datacollector.db.data.Project
-
 
 class ExecutionRepoActor extends Actor {
   import scala.concurrent.ExecutionContext.Implicits.global
-
   implicit val timeout = Timeout(5 seconds)
 
   val logActor = context.actorSelection("/user/logActor")
   val codecRegistry = fromRegistries(fromProviders(classOf[Project]), MongoClient.DEFAULT_CODEC_REGISTRY)
 
-
   override def receive: Receive = {
-
     case l: Long =>
       println(s"receive a long variable: $l")
       sender ! getProject(12)
-  }
 
+    case project: Project =>
+      println(s"receive a project: $project")
+      sender ! saveProject(project)
+  }
 
   /*
     get project by id
@@ -52,9 +49,21 @@ class ExecutionRepoActor extends Actor {
      val database: MongoDatabase = mongoClient.getDatabase("TCM")
                                               .withCodecRegistry(codecRegistry)
      var collection: MongoCollection[Project] = database.getCollection("Projects")
-
-     // return Future[Seq[Document]]
      val future = collection.find().limit(5).projection(fields(include("id", "name", "description"), excludeId())).toFuture()
+     logActor ! " ---------->> we got the DB future " + future
+     return future
+  }
+
+  /*
+    save project
+  */
+  def saveProject(project: Project): Unit = {
+     logActor ! " ---------->> saving DB for project id "
+     val mongoClient: MongoClient = MongoClient("mongodb://mongodb:27017/")
+     val database: MongoDatabase = mongoClient.getDatabase("TCM")
+                                              .withCodecRegistry(codecRegistry)
+     var collection: MongoCollection[Project] = database.getCollection("Projects")
+     val future = collection.insertOne(project)
      logActor ! " ---------->> we got the DB future " + future
      return future
   }
