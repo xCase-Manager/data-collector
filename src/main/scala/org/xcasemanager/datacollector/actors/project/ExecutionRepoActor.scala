@@ -28,7 +28,12 @@ class ExecutionRepoActor extends Actor {
   implicit val timeout = Timeout(5 seconds)
 
   val logActor = context.actorSelection("/user/logActor")
-  val codecRegistry = fromRegistries(fromProviders(classOf[Project]), MongoClient.DEFAULT_CODEC_REGISTRY)
+  val codecRegistry = fromRegistries(fromProviders(classOf[Project]), 
+                                              MongoClient.DEFAULT_CODEC_REGISTRY)
+
+  val mongoClient = MongoClient("mongodb://mongodb:27017/")
+  val database = mongoClient.getDatabase("TCM")
+                                              .withCodecRegistry(codecRegistry)
 
   override def receive: Receive = {
     case l: Long =>
@@ -44,13 +49,9 @@ class ExecutionRepoActor extends Actor {
     get project by id
   */
   def getProject(id: Int): Future[Seq[Project]] = {
-     logActor ! " ---------->> requesting DB for project id " + id
-     val mongoClient: MongoClient = MongoClient("mongodb://mongodb:27017/")
-     val database: MongoDatabase = mongoClient.getDatabase("TCM")
-                                              .withCodecRegistry(codecRegistry)
      var collection: MongoCollection[Project] = database.getCollection("Projects")
-     val future = collection.find().limit(5).projection(fields(include("id", "name", "description"), excludeId())).toFuture()
-     logActor ! " ---------->> we got the DB future " + future
+     logActor ! " ---------->> requesting DB for project id " + id
+     val future = collection.find().projection(fields(include("id", "name", "description"), excludeId())).toFuture()
      return future
   }
 
@@ -58,13 +59,8 @@ class ExecutionRepoActor extends Actor {
     save project
   */
   def saveProject(project: Project): Unit = {
-     logActor ! " ---------->> saving DB for project id "
-     val mongoClient: MongoClient = MongoClient("mongodb://mongodb:27017/")
-     val database: MongoDatabase = mongoClient.getDatabase("TCM")
-                                              .withCodecRegistry(codecRegistry)
      var collection: MongoCollection[Project] = database.getCollection("Projects")
      val future = collection.insertOne(project)
-     logActor ! " ---------->> we got the DB future " + future
      return future
   }
 }
