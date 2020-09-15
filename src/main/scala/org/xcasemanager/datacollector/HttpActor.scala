@@ -116,14 +116,20 @@ class HttpActor extends Actor {
                 case Success(project: org.xcasemanager.datacollector.db.data.Project) => {
                       val proj: Future[Any] = executionRepoActor ? project
                       onComplete(proj) {
-                        case Success(()) => {        
-                                complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
-                        }
-                          
-                        case Failure(failure) => {
-                          complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))    
-                        }              
-                      }
+                          case Success(seqFuture: Future[Any]) => {
+                                onComplete(seqFuture) {
+                                          case Success(()) => {        
+                                                  complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
+                                          }
+                                            
+                                          case Failure(failure) =>
+                                            complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))             
+                                }
+                          }
+
+                          case Failure(failure) =>
+                                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))
+                      }     
                 }
 
                 case Failure(failure) => 
