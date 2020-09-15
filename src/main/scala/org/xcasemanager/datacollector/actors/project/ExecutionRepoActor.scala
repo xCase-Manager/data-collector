@@ -51,16 +51,16 @@ class ExecutionRepoActor extends Actor {
   def getProject(id: Int): Future[Seq[Project]] = {
      var collection: MongoCollection[Project] = database.getCollection("Projects")
      logActor ! " ---------->> requesting DB for project id " + id
-     val future = collection.find().projection(fields(include("id", "name", "description"), excludeId())).toFuture()
+     val future = collection.find().projection(
+       fields(include("id", "name", "description"), excludeId())).toFuture()
      return future
   }
 
   /*
     save project
   */
-  def saveProject(project: Project): Unit = {
+  def saveProject(project: Project): Future[Any] = {
      var collection: MongoCollection[Project] = database.getCollection("Projects")
-     val future = collection.insertOne(project)
-     return future
+     return collection.insertOne(project).toFuture()
   }
 }
