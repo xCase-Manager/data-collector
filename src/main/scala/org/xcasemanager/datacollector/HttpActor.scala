@@ -118,7 +118,7 @@ class HttpActor extends Actor {
                       onComplete(proj) {
                           case Success(seqFuture: Future[Any]) => {
                                 onComplete(seqFuture) {
-                                          case Success(()) => {        
+                                          case Success(res: Any) => {        
                                                   complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
                                           }
                                             
