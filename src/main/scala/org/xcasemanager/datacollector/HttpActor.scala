@@ -137,6 +137,33 @@ class HttpActor extends Actor {
               }
             }
           }      
+        } ~
+        post {
+          pathPrefix("projectt") {
+            entity(as[Project]) { project =>
+              
+               
+              val proj: Future[Any] = executionRepoActor ? project
+              onComplete(proj) {
+                          case Success(seqFuture: Future[Any]) => {
+                                onComplete(seqFuture) {
+                                          case Success(res: Any) => {        
+                                                  complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
+                                          }
+                                            
+                                          case Failure(failure) =>
+                                            complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))             
+                                }
+                          }
+
+                          case Failure(failure) =>
+                                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))
+                      }     
+              
+
+                
+            }
+          }      
         }
       )
     )
