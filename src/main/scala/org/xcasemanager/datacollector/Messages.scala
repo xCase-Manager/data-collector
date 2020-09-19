@@ -4,26 +4,12 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol
 
 /**
-  * Message envelope
-  * @param senderId the sender ID
-  * @param message the SimpleMessage
+  * Project message
+  * @param id project id
+  * @param name project name
+  * @param description project description
   */
-case class Envelope(val senderId : String, val recipient : String, val message : SimpleMessage)
-
-/**
-  * The SimpleMessage
-  * @param recipient the recipient of the message
-  * @param subject the subject
-  * @param text the text
-  */
-case class SimpleMessage(val subject : String, val text : String)
-
-/**
-  * The registration message
-  * @param id id of the registrant
-  * @param fullName the full name of the registrant
-  */
-case class Registration(val id : String, val fullName : String)
+case class Project(val id : String, val name : String, val description : String)
 
 /**
   * Success message
@@ -40,10 +26,8 @@ case class OpFailure(val message : String)
 /**
   * Json formatters
   */
-object JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val simpleMessageFormat = jsonFormat2(SimpleMessage)
-  implicit val envelopeFormat = jsonFormat3(Envelope)
-  implicit val registrationFormat = jsonFormat2(Registration)
+object JsonSupport extends SprayJsonSupport with DefaultJsonProtocol { 
+  implicit val oProjectFormat = jsonFormat3(Project)
   implicit val opSuccessFormat = jsonFormat1(OpSuccess)
   implicit val opFailureFormat = jsonFormat1(OpFailure)
 }
