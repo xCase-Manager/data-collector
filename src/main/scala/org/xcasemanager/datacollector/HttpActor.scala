@@ -35,7 +35,7 @@ class HttpActor extends Actor {
   val logActor = context.actorSelection("/user/logActor")
   val executionDataProcessActor = context.actorSelection("/user/executionDataProcessActor")
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")
-
+  val errorMessage = "{\"error\": \"could not save project\"}"
   /*
     Exception Handler
   */
@@ -45,7 +45,8 @@ class HttpActor extends Actor {
         extractUri { uri =>
           logActor ! s"Request to $uri could not be handled normally"
           logActor ! " -----> Reason: " + error.getMessage
-          complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not process request\"}"))
+          complete(HttpEntity(ContentTypes.`application/json`, 
+          errorMessage))
         }
     }
   implicit val executionContext = context.dispatcher
@@ -79,30 +80,27 @@ class HttpActor extends Actor {
           pathPrefix("project" / LongNumber) { id =>
             val proj: Future[Any] = executionRepoActor ? id
             onComplete(proj) {
-
               case Success(seqFuture: Future[Any]) => {
                 onComplete(seqFuture) {
-
-                    case Success(seq) => {
-                      val projStr: Future[Any] = executionDataProcessActor ? seq
-
-                      onComplete(projStr) {
-                        case Success(seqStr: String) => {
-                          complete(HttpEntity(ContentTypes.`application/json`, seqStr))
-                        }
-
-                        case Failure(failure) => 
-                          complete(HttpEntity(ContentTypes.`application/json`, "failure!")) 
+                  case Success(seq) => {
+                    val projStr: Future[Any] = executionDataProcessActor ? seq
+                    onComplete(projStr) {
+                      case Success(seqStr: String) => {
+                        complete(HttpEntity(ContentTypes.`application/json`, seqStr))
                       }
-                    } 
-                              
+                      case Failure(failure) => 
+                        complete(HttpEntity(ContentTypes.`application/json`, 
+                        errorMessage)) 
+                      }
+                    }            
                     case Failure(failure) => 
-                      complete(HttpEntity(ContentTypes.`application/json`, "failure!"))  
+                      complete(HttpEntity(ContentTypes.`application/json`, 
+                      errorMessage))  
                 }        
-              }            
-                  
+              }                             
               case Failure(failure) => {
-                complete(HttpEntity(ContentTypes.`application/json`, "failure"))    
+                complete(HttpEntity(ContentTypes.`application/json`,
+                errorMessage))    
               }              
             }       
           }
@@ -114,54 +112,27 @@ class HttpActor extends Actor {
               println("projFut: " + projFut)
               onComplete(projFut) {
                 case Success(project: org.xcasemanager.datacollector.db.data.Project) => {
-                      val proj: Future[Any] = executionRepoActor ? project
-                      onComplete(proj) {
-                          case Success(seqFuture: Future[Any]) => {
-                                onComplete(seqFuture) {
-                                          case Success(res: Any) => {        
-                                                  complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
-                                          }
-                                            
-                                          case Failure(failure) =>
-                                            complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))             
-                                }
-                          }
-
-                          case Failure(failure) =>
-                                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))
-                      }     
+                  val proj: Future[Any] = executionRepoActor ? project
+                  onComplete(proj) {
+                    case Success(seqFuture: Future[Any]) => {
+                      onComplete(seqFuture) {
+                        case Success(res: Any) => {        
+                          complete(Created, HttpEntity.Empty)                  
+                        }                         
+                        case Failure(failure) =>
+                          complete(HttpEntity(ContentTypes.`application/json`, 
+                          errorMessage))             
+                        }
+                    }
+                    case Failure(failure) =>
+                      complete(HttpEntity(ContentTypes.`application/json`, 
+                      errorMessage))
+                  }     
                 }
-
                 case Failure(failure) => 
-                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))        
+                  complete(HttpEntity(ContentTypes.`application/json`, 
+                  errorMessage))        
               }
-            }
-          }      
-        } ~
-        post {
-          pathPrefix("projectt") {
-            entity(as[Project]) { project =>
-              
-               
-              val proj: Future[Any] = executionRepoActor ? project
-              onComplete(proj) {
-                          case Success(seqFuture: Future[Any]) => {
-                                onComplete(seqFuture) {
-                                          case Success(res: Any) => {        
-                                                  complete(HttpEntity(ContentTypes.`application/json`, "{\"success\": \"project successfuly saved\"}"))                  
-                                          }
-                                            
-                                          case Failure(failure) =>
-                                            complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))             
-                                }
-                          }
-
-                          case Failure(failure) =>
-                                      complete(HttpEntity(ContentTypes.`application/json`, "{\"error\": \"could not save project\"}"))
-                      }     
-              
-
-                
             }
           }      
         }
