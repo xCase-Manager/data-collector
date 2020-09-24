@@ -1,22 +1,27 @@
 package org.xcasemanager.datacollector.actors.project
 
 import akka.actor.Actor
+import akka.event.Logging
 import scala.util.parsing.json._
 import org.xcasemanager.datacollector.db.data.Project
 
+/*
+    Data processor
+*/
 class ExecutionDataProcessActor extends Actor {
- 
+  
+  val log = Logging(context.system, this)
+
   /*
     message handler
   */
   def receive = {
-
     case seq: Seq[Project] =>
-      println(s"increment $seq")
+      log.debug(s"project: $seq")
       sender ! jsonizeDocs(seq)
     
     case project: String =>
-      println(s"project: $project")
+      log.debug(s"project: $project")
       sender ! toProject(project)
   }
 

@@ -1,16 +1,14 @@
 package org.xcasemanager.datacollector.actors.project
 
 import akka.actor.Actor
-import akka.pattern.ask
+import akka.event.Logging
 import akka.util.Timeout
+import akka.pattern.ask
 import akka.pattern.pipe
-
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
 import scala.util.{Success, Failure}
-
-// MongoDB
 import org.mongodb.scala.result.DeleteResult
 import org.mongodb.scala._
 import org.mongodb.scala.Observer
@@ -23,7 +21,11 @@ import org.mongodb.scala.bson.codecs.Macros.createCodecProvider
 import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
 import org.xcasemanager.datacollector.db.data.Project
 
+/*
+    Execution Repository
+*/
 class ExecutionRepoActor extends Actor {
+  val log = Logging(context.system, this)
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val timeout = Timeout(5 seconds)
 
@@ -35,22 +37,24 @@ class ExecutionRepoActor extends Actor {
   val database = mongoClient.getDatabase("TCM")
                                               .withCodecRegistry(codecRegistry)
 
+  /*
+    message handler
+  */
   override def receive: Receive = {
-    case l: Long =>
-      println(s"receive a long variable: $l")
-      sender ! getProject(12)
+    case id: Long =>
+      log.debug(s"id: $id")
+      sender ! getProject(id)
 
     case project: Project =>
-      println(s"receive a project: $project")
+      log.debug(s"project: $project")
       sender ! saveProject(project)
   }
 
   /*
     get project by id
   */
-  def getProject(id: Int): Future[Seq[Project]] = {
+  def getProject(id: Long): Future[Seq[Project]] = {
      var collection: MongoCollection[Project] = database.getCollection("Projects")
-     logActor ! " ---------->> requesting DB for project id " + id
      val future = collection.find().projection(
        fields(include("id", "name", "description"), excludeId())).toFuture()
      return future
