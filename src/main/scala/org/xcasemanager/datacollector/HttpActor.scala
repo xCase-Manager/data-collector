@@ -132,7 +132,11 @@ class HttpActor extends Actor with ActorLogging{
 
     // Start server
     log.info("Starting Data Collector API Server ...")
+    val config = system.settings.config
     http = Http()
-    binding = http.bindAndHandle(routes, "localhost", 8000)
+    binding = http.bindAndHandle(routes, 
+      config.getString("HttpServer.host"), 
+      config.getInt("HttpServer.port")
+    )
   }
 }
