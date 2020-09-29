@@ -1,6 +1,6 @@
 package org.xcasemanager.datacollector
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorLogging}
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model._
@@ -21,9 +21,8 @@ import org.xcasemanager.datacollector.JsonSupport._
 /**
 * data collector API server
 */
-class HttpActor extends Actor {
+class HttpActor extends Actor with ActorLogging{
 
-  val log = Logging(context.system, this)
   val executionDataProcessActor = 
     context.actorSelection("/user/executionDataProcessActor")
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")

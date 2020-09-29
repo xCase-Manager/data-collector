@@ -1,7 +1,6 @@
 package org.xcasemanager.datacollector.actors.project
 
-import akka.actor.Actor
-import akka.event.Logging
+import akka.actor.{Actor, ActorLogging}
 import scala.concurrent.Future
 import org.mongodb.scala._
 import org.mongodb.scala.model.Filters._
@@ -15,8 +14,7 @@ import org.xcasemanager.datacollector.db.data.Project
 /*
     Execution Repository
 */
-class ExecutionRepoActor extends Actor {
-  val log = Logging(context.system, this)
+class ExecutionRepoActor extends Actor with ActorLogging{
   import scala.concurrent.ExecutionContext.Implicits.global
   val codecRegistry = 
     fromRegistries(fromProviders(classOf[Project]), 
