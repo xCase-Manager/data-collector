@@ -1,7 +1,6 @@
 package org.xcasemanager.datacollector.actors.project
 
 import akka.actor.Actor
-import akka.event.Logging
 import scala.util.parsing.json._
 import org.xcasemanager.datacollector.db.data.Project
 
@@ -10,19 +9,15 @@ import org.xcasemanager.datacollector.db.data.Project
 */
 class ExecutionDataProcessActor extends Actor {
   
-  val log = Logging(context.system, this)
-
   /*
     message handler
     @input message
   */
   def receive = {
     case seq: Seq[Project] =>
-      log.debug(s"project: $seq")
       sender ! jsonizeDocs(seq)
     
     case project: String =>
-      log.debug(s"project: $project")
       sender ! toProject(project)
   }
 
@@ -39,7 +34,7 @@ class ExecutionDataProcessActor extends Actor {
       }
       sb.append("{" + getElement(proj) + "}")
     }
-    "[" + sb.toString + "]"
+    s"[ $sb.toString ]"
   }
 
   /*
@@ -54,7 +49,7 @@ class ExecutionDataProcessActor extends Actor {
       if (sb.nonEmpty) {
         sb.append(",")
       }    
-      sb.append("'" + f.getName + "': '" + f.get(proj) + "'")   
+      sb.append(s"'$f.getName': '$f.get($proj)'")   
     }
     sb.toString
   }
