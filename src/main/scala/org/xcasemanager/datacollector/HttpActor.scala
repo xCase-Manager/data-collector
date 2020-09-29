@@ -44,7 +44,6 @@ class HttpActor extends Actor {
   implicit val executionContext = context.dispatcher
   implicit val system = context.system
   implicit val timeout = Timeout(10,TimeUnit.SECONDS)
-  implicit val materializer = ActorMaterializer()
 
   var http : HttpExt = null
   var binding : Future[ServerBinding] = null
