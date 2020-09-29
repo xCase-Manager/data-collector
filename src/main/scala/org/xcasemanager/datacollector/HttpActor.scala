@@ -4,29 +4,19 @@ import akka.actor.Actor
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes._
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server._
-import Directives._
-import StatusCodes._
-import akka.http.scaladsl.server.Route
-import akka.stream.ActorMaterializer
-import org.xcasemanager.datacollector.JsonSupport._
-import spray.json._
 import akka.pattern.ask
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.util.{Failure, Success}
-import scala.concurrent.duration.Duration
-import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Source
-import akka.pattern.Patterns
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
-import akka.http.scaladsl.Http.ServerBinding
+import scala.util.{Failure, Success}
 import akka.event.Logging
+import org.xcasemanager.datacollector.JsonSupport._
 
 /**
 * data collector API server
@@ -61,6 +51,7 @@ class HttpActor extends Actor {
 
   /*
     server command messages handler
+    @input message
   */
   override def receive: Receive = {
     case StartWebServerCommand =>
@@ -142,7 +133,7 @@ class HttpActor extends Actor {
     )
 
     // Start server
-    logActor ! "Starting Data Collector API Server ..."
+    log.info("Starting Data Collector API Server ...")
     http = Http()
     binding = http.bindAndHandle(routes, "localhost", 8000)
   }
