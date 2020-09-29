@@ -2,21 +2,15 @@ package org.xcasemanager.datacollector.actors.project
 
 import akka.actor.Actor
 import akka.event.Logging
-import akka.pattern.ask
-import akka.pattern.pipe
 import scala.concurrent.Future
-import scala.concurrent.duration._
-import org.mongodb.scala.result.DeleteResult
 import org.mongodb.scala._
-import org.mongodb.scala.Observer
-import org.mongodb.scala.model.Filters._
-import org.mongodb.scala.model.Projections._
 import org.mongodb.scala.model.Filters._
 import org.mongodb.scala.bson.codecs.Macros._
-import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
-import org.mongodb.scala.bson.codecs.Macros.createCodecProvider 
-import org.bson.codecs.configuration.CodecRegistries.{fromRegistries, fromProviders}
+import org.mongodb.scala.model.Projections._
+import org.bson.codecs.configuration.CodecRegistries
+  .{fromRegistries, fromProviders}
 import org.xcasemanager.datacollector.db.data.Project
+
 
 /*
     Execution Repository
@@ -33,6 +27,7 @@ class ExecutionRepoActor extends Actor {
 
   /*
     message handler
+    @input message
   */
   override def receive: Receive = {
     case id: Long =>
@@ -45,7 +40,9 @@ class ExecutionRepoActor extends Actor {
   }
 
   /*
-    get project by id
+    get project
+    @input project id
+    @output Future
   */
   def getProject(id: Long): Future[Seq[Project]] = {
      var collection: MongoCollection[Project] = 
@@ -58,6 +55,8 @@ class ExecutionRepoActor extends Actor {
 
   /*
     save project
+    @input Project
+    @output Future
   */
   def saveProject(project: Project): Future[Any] = {
      var collection: MongoCollection[Project] = 
