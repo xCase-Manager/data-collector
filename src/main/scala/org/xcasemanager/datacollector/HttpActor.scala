@@ -135,8 +135,8 @@ class HttpActor extends Actor with ActorLogging{
     val config = system.settings.config
     http = Http()
     binding = http.bindAndHandle(routes, 
-      config.getString("HttpServer.host"), 
-      config.getInt("HttpServer.port")
+      config.getString("DataCollector.httpServer.host"), 
+      config.getInt("DataCollector.httpServer.port")
     )
   }
 }
