@@ -26,14 +26,16 @@ import akka.pattern.Patterns
 import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import akka.http.scaladsl.Http.ServerBinding
+import akka.event.Logging
 
 /**
 * data collector API server
 */
 class HttpActor extends Actor {
 
-  val logActor = context.actorSelection("/user/logActor")
-  val executionDataProcessActor = context.actorSelection("/user/executionDataProcessActor")
+  val log = Logging(context.system, this)
+  val executionDataProcessActor = 
+    context.actorSelection("/user/executionDataProcessActor")
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")
   val errorMessage = "{\"error\": \"could not save project\"}"
   /*
@@ -43,10 +45,10 @@ class HttpActor extends Actor {
     ExceptionHandler {
       case error: Exception =>
         extractUri { uri =>
-          logActor ! s"Request to $uri could not be handled normally"
-          logActor ! " -----> Reason: " + error.getMessage
+          log.info(s"request to $uri could not be handled normally. " +
+            s"Reason: $error.getMessage")
           complete(HttpEntity(ContentTypes.`application/json`, 
-          errorMessage))
+            errorMessage))
         }
     }
   implicit val executionContext = context.dispatcher
