@@ -19,8 +19,13 @@ class ExecutionRepoActor extends Actor with ActorLogging{
   val codecRegistry = 
     fromRegistries(fromProviders(classOf[Project]), 
     MongoClient.DEFAULT_CODEC_REGISTRY)
-  val mongoClient = MongoClient("mongodb://mongodb:27017/")
-  val database = mongoClient.getDatabase("TCM")
+  implicit val executionContext = context.dispatcher
+  implicit val system = context.system
+  val config = system.settings.config
+  val mongoClient = MongoClient(config.getString(
+    "DataCollector.database.connect"))
+  val database = mongoClient.getDatabase(
+    config.getString("DataCollector.database.connect"))
     .withCodecRegistry(codecRegistry)
 
   /*
