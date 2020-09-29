@@ -14,6 +14,7 @@ class ExecutionDataProcessActor extends Actor {
 
   /*
     message handler
+    @input message
   */
   def receive = {
     case seq: Seq[Project] =>
@@ -26,7 +27,9 @@ class ExecutionDataProcessActor extends Actor {
   }
 
   /*
-    main JSON builder
+    JSON builder
+    @input Projects
+    @output String
   */
   def jsonizeDocs(cProject: Seq[Project]): String = {
     val sb=new StringBuilder
@@ -40,7 +43,9 @@ class ExecutionDataProcessActor extends Actor {
   }
 
   /*
-    JSON element builder
+    Element parser
+    @input Project
+    @output String
   */
   def getElement(proj: Project): String = {
     val sb=new StringBuilder
@@ -55,7 +60,9 @@ class ExecutionDataProcessActor extends Actor {
   }
 
   /*
-    convert to Project
+    Project mapper
+    @input String
+    @input Project
   */
   def toProject(proj: String): Project= {
     val project = JSON.parseFull(proj)
