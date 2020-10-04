@@ -26,7 +26,7 @@ class HttpActor extends Actor with ActorLogging with Directives with JsonSupport
   val executionDataProcessActor = 
     context.actorSelection("/user/executionDataProcessActor")
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")
-  val errorMessage = "{\"error\": \"could not save project\"}"
+  val errorMessage = "{\"error\": \"could not request\"}"
   /*
     Exception Handler
   */
