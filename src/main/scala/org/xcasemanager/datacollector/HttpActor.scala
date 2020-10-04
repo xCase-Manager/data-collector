@@ -16,12 +16,12 @@ import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import scala.util.{Failure, Success}
 import akka.event.Logging
-import org.xcasemanager.datacollector.JsonSupport._
+import org.xcasemanager.datacollector.JsonSupport
 
 /**
 * data collector API server
 */
-class HttpActor extends Actor with ActorLogging{
+class HttpActor extends Actor with ActorLogging with Directives with JsonSupport{
 
   val executionDataProcessActor = 
     context.actorSelection("/user/executionDataProcessActor")
@@ -70,29 +70,21 @@ class HttpActor extends Actor with ActorLogging{
         get {
           pathPrefix("project" / LongNumber) { id =>
             val proj: Future[Any] = executionRepoActor ? id
-            onComplete(proj) {
+            onComplete(proj) {         
               case Success(seqFuture: Future[Any]) => {
                 onComplete(seqFuture) {
-                  case Success(seq) => {
-                    val projStr: Future[Any] = executionDataProcessActor ? seq
-                    onComplete(projStr) {
-                      case Success(seqStr: String) => {
-                        complete(HttpEntity(ContentTypes.`application/json`, seqStr))
-                      }
-                      case Failure(failure) => 
-                        complete(HttpEntity(ContentTypes.`application/json`, 
-                        errorMessage)) 
-                      }
-                    }            
+                  case Success(seq: Seq[Project]) =>
+                      complete(new Projects(seq))          
                     case Failure(failure) => 
                       complete(HttpEntity(ContentTypes.`application/json`, 
                       errorMessage))  
                 }        
-              }                             
+              }
+
               case Failure(failure) => {
                 complete(HttpEntity(ContentTypes.`application/json`,
                 errorMessage))    
-              }              
+              }
             }       
           }
         } ~

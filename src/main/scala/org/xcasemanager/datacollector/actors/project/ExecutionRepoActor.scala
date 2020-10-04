@@ -8,7 +8,9 @@ import org.mongodb.scala.bson.codecs.Macros._
 import org.mongodb.scala.model.Projections._
 import org.bson.codecs.configuration.CodecRegistries
   .{fromRegistries, fromProviders}
-import org.xcasemanager.datacollector.db.data.Project
+//import org.xcasemanager.datacollector.db.data.Project
+import org.xcasemanager.datacollector.Project
+import org.xcasemanager.datacollector.Projects
 
 
 /*
@@ -25,7 +27,7 @@ class ExecutionRepoActor extends Actor with ActorLogging{
   val mongoClient = MongoClient(config.getString(
     "DataCollector.database.connect"))
   val database = mongoClient.getDatabase(
-    config.getString("DataCollector.database.connect"))
+    config.getString("DataCollector.database.name"))
     .withCodecRegistry(codecRegistry)
 
   /*
