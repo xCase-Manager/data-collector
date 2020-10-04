@@ -23,8 +23,6 @@ import org.xcasemanager.datacollector.JsonSupport
 */
 class HttpActor extends Actor with ActorLogging with Directives with JsonSupport{
 
-  val executionDataProcessActor = 
-    context.actorSelection("/user/executionDataProcessActor")
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")
   val errorMessage = "{\"error\": \"could not request\"}"
   /*
@@ -90,32 +88,23 @@ class HttpActor extends Actor with ActorLogging with Directives with JsonSupport
         } ~
         post {
           pathPrefix("project") {
-            entity(as[String]) { projectStr =>
-              val projFut: Future[Any] = executionDataProcessActor ? projectStr
-              println("projFut: " + projFut)
-              onComplete(projFut) {
-                case Success(project: org.xcasemanager.datacollector.db.data.Project) => {
-                  val proj: Future[Any] = executionRepoActor ? project
-                  onComplete(proj) {
-                    case Success(seqFuture: Future[Any]) => {
-                      onComplete(seqFuture) {
-                        case Success(res: Any) => {        
-                          complete(Created, HttpEntity.Empty)                  
-                        }                         
-                        case Failure(failure) =>
-                          complete(HttpEntity(ContentTypes.`application/json`, 
-                          errorMessage))             
-                        }
+            entity(as[Project]) { project =>
+              val proj: Future[Any] = executionRepoActor ? project
+              onComplete(proj) {
+                case Success(seqFuture: Future[Any]) => {
+                  onComplete(seqFuture) {
+                    case Success(res: Any) => {        
+                      complete(Created, HttpEntity.Empty)                  
+                    }                         
+                    case Failure(failure) =>
+                      complete(HttpEntity(ContentTypes.`application/json`, 
+                       errorMessage))             
+                      }
                     }
                     case Failure(failure) =>
                       complete(HttpEntity(ContentTypes.`application/json`, 
-                      errorMessage))
-                  }     
-                }
-                case Failure(failure) => 
-                  complete(HttpEntity(ContentTypes.`application/json`, 
-                  errorMessage))        
-              }
+                       errorMessage))
+               }
             }
           }      
         }
