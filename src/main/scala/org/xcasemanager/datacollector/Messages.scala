@@ -11,6 +11,11 @@ import spray.json._
   * @param description project description
   */
 case class Project(val id : String, val name : String, val description : String)
+
+/**
+  * Projects message
+  * @param Projects sequence of projects 
+  */
 case class Projects(val projects: Seq[Project])
 
 /**
