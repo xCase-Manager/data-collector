@@ -1,4 +1,4 @@
-package org.xcasemanager.datacollector
+package org.xcasemanager.datacollector.message
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json.DefaultJsonProtocol._

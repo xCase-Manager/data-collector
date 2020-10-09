@@ -1,4 +1,4 @@
-package org.xcasemanager.datacollector
+package org.xcasemanager.datacollector.web
 
 import akka.actor.{Actor, ActorLogging}
 import akka.http.scaladsl.Http.ServerBinding
@@ -16,12 +16,14 @@ import akka.util.Timeout
 import java.util.concurrent.TimeUnit
 import scala.util.{Failure, Success}
 import akka.event.Logging
-import org.xcasemanager.datacollector.JsonSupport
+import org.xcasemanager.datacollector.message._
+import org.xcasemanager.datacollector.web.command._
+
 
 /**
 * data collector API server
 */
-class HttpActor extends Actor with ActorLogging with Directives with JsonSupport{
+class WebService extends Actor with ActorLogging with Directives with JsonSupport{
 
   val executionRepoActor = context.actorSelection("/user/executionRepoActor")
   val errorMessage = "{\"error\": \"could not request\"}"

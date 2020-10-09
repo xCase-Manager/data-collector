@@ -1,4 +1,4 @@
-package org.xcasemanager.datacollector
+package org.xcasemanager.datacollector.web.command
 
 object StartWebServerCommand
 object StopWebServerCommand
