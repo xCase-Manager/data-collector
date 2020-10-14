@@ -73,11 +73,13 @@ class WebService extends Actor with ActorLogging with Directives with JsonSuppor
             onComplete(proj) {         
               case Success(seqFuture: Future[Any]) => {
                 onComplete(seqFuture) {
-                  case Success(seq: Seq[Project]) =>
-                      complete(new Projects(seq))          
-                    case Failure(failure) => 
-                      complete(HttpEntity(ContentTypes.`application/json`, 
-                      errorMessage))  
+                  case Success(seq: Seq[Project]) => {
+                    complete(new Projects(seq))
+                  }
+                                
+                  case Failure(failure) => 
+                    complete(HttpEntity(ContentTypes.`application/json`, 
+                    errorMessage))  
                 }        
               }
 
@@ -95,7 +97,7 @@ class WebService extends Actor with ActorLogging with Directives with JsonSuppor
               onComplete(proj) {
                 case Success(seqFuture: Future[Any]) => {
                   onComplete(seqFuture) {
-                    case Success(res: Any) => {        
+                    case Success(res: Any) => {       
                       complete(Created, HttpEntity.Empty)                  
                     }                         
                     case Failure(failure) =>
