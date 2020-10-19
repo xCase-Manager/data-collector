@@ -5,7 +5,7 @@ import org.xcasemanager.datacollector.actors.project.ExecutionRepoActor
 import org.xcasemanager.datacollector.queue.Publisher
 import org.xcasemanager.datacollector.queue.Consumer
 import org.xcasemanager.datacollector.web.WebService
-import org.xcasemanager.datacollector.queue.StartQueueConsumerCommand
+import org.xcasemanager.datacollector.queue.command.StartQueueConsumerCommand
 import org.xcasemanager.datacollector.web.command.StartWebServerCommand
 
 object Main extends App {

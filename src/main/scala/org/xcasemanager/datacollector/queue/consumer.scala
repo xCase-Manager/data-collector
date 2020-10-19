@@ -6,7 +6,8 @@ import akka.actor.{Actor, ActorLogging}
 import scala.concurrent.Future
 import scala.language.postfixOps
 import org.apache.kafka.common.serialization.{StringSerializer, ByteArraySerializer}
-import org.xcasemanager.datacollector.queue.command.StartConsummerCommand
+import org.xcasemanager.datacollector.queue.command.StartQueueConsumerCommand
+import org.xcasemanager.datacollector.message._
 
 /**
 * Queue Consumer
@@ -22,7 +23,7 @@ class Consumer extends Actor with JsonSupport with ActorLogging {
     @input message
   */
   def receive = {
-    case StartConsummerCommand =>
+    case StartQueueConsumerCommand =>
       startConsumer
   }
 
