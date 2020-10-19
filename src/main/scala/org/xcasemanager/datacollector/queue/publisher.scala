@@ -4,7 +4,7 @@ import akka.kafka.ProducerSettings
 import akka.kafka.scaladsl.Producer
 import akka.stream.scaladsl.Source
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.serialization.StringSerializer
+import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 import akka.actor.{Actor, ActorLogging}
 import akka.serialization._
 import org.xcasemanager.datacollector.message._
@@ -15,11 +15,10 @@ import org.xcasemanager.datacollector.message._
 class Publisher extends Actor with JsonSupport with ActorLogging {
 
   implicit val system = context.system
-  val config = system.settings.config.getConfig("akka.kafka.producer")
   val topicName = system.settings.config.getString("queue.topic.name")
   val producerSettings =
-    ProducerSettings(config, new StringSerializer, new ByteArraySerializer)
-    .withBootstrapServers(bootstrapServers)
+    ProducerSettings(system, new StringSerializer, new ByteArraySerializer)
+  val serialization = SerializationExtension(system)
 
   /*
     message handler
@@ -28,7 +27,7 @@ class Publisher extends Actor with JsonSupport with ActorLogging {
   def receive = {
     case projects: Seq[Project] =>
       Source(projects)
-      .map(Project => new ProducerRecord[String, ByteArray](topicName, 
+      .map(Project => new ProducerRecord[String, Array[Byte]](topicName, 
         serialization.serialize(Project).get))
       .runWith(Producer.plainSink(producerSettings))
   }
