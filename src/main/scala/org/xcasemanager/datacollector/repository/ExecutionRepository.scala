@@ -1,4 +1,4 @@
-package org.xcasemanager.datacollector.actors.project
+package org.xcasemanager.datacollector.repository
 
 import akka.actor.{Actor, ActorLogging}
 import scala.concurrent.Future
@@ -15,7 +15,7 @@ import org.xcasemanager.datacollector.message.Projects
 /*
     Execution Repository
 */
-class ExecutionRepoActor extends Actor with ActorLogging{
+class ExecutionRepository extends Actor with ActorLogging{
   import scala.concurrent.ExecutionContext.Implicits.global
   val codecRegistry = 
     fromRegistries(fromProviders(classOf[Project]), 

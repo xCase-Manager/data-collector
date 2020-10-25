@@ -25,7 +25,7 @@ import org.xcasemanager.datacollector.web.command._
 */
 class WebService extends Actor with ActorLogging with Directives with JsonSupport{
 
-  val executionRepoActor = context.actorSelection("/user/executionRepoActor")
+  val executionRepository = context.actorSelection("/user/executionRepository")
   val errorMessage = "{\"error\": \"could not request\"}"
   /*
     Exception Handler
@@ -69,7 +69,7 @@ class WebService extends Actor with ActorLogging with Directives with JsonSuppor
       concat(
         get {
           pathPrefix("project" / LongNumber) { id =>
-            val proj: Future[Any] = executionRepoActor ? id
+            val proj: Future[Any] = executionRepository ? id
             onComplete(proj) {         
               case Success(seqFuture: Future[Any]) => {
                 onComplete(seqFuture) {
@@ -93,7 +93,7 @@ class WebService extends Actor with ActorLogging with Directives with JsonSuppor
         post {
           pathPrefix("project") {
             entity(as[Project]) { project =>
-              val proj: Future[Any] = executionRepoActor ? project
+              val proj: Future[Any] = executionRepository ? project
               onComplete(proj) {
                 case Success(seqFuture: Future[Any]) => {
                   onComplete(seqFuture) {
