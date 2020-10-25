@@ -1,10 +1,12 @@
 package org.xcasemanager.datacollector.queue
 
+import akka.Done
 import akka.kafka.scaladsl.Consumer
 import akka.kafka.{ConsumerSettings, Subscriptions}
 import akka.stream.scaladsl.Sink
 import akka.actor.{Actor, ActorLogging}
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
+import scala.util.{Failure, Success}
 import scala.language.postfixOps
 import org.apache.kafka.common.serialization._
 import org.xcasemanager.datacollector.queue.command.StartQueueConsumerCommand
@@ -17,6 +19,7 @@ import org.xcasemanager.datacollector.message._
 class Consumer extends Actor with JsonSupport with ActorLogging {
 
   implicit val system = context.system
+  implicit val dispatcher: ExecutionContextExecutor = context.system.dispatcher
 
   val config = system.settings.config.getConfig("akka.kafka.consumer")
   val consumerSettings =
@@ -36,10 +39,26 @@ class Consumer extends Actor with JsonSupport with ActorLogging {
     listen to topic
   */
   def startConsumer = {
-    Consumer.plainSource(consumerSettings, Subscriptions.topics(topicName))
-      .mapAsync(1) ( msg => {
-        log.info(s"Message Received : ${msg.timestamp} - ${msg.value}")
-      Future.successful(msg)
+    val done = Consumer.committableSource(consumerSettings, Subscriptions.topics(topicName))
+      .mapAsync(10) ( msg => {
+         event(msg.record.key, msg.record.value).map(_ => msg.committableOffset)
     }).runWith(Sink.ignore)
+  
+    done onComplete {
+      case Success(_) =>
+        log.info(" ... successfully started)")
+      case Failure(ex) =>
+        log.info(s" ... Queue Receiver error: ${ex.getMessage}"); 
+       
+    }
+  }
+
+  /*
+    event handler
+  */
+  def event(key: String, value: Array[Byte]): Future[Done] = {
+    val promise = Promise[Int]
+    promise.success(0)
+    promise.future
   }
 }
